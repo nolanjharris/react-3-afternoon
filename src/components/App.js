@@ -18,6 +18,7 @@ class App extends Component {
     this.updatePost = this.updatePost.bind(this);
     this.deletePost = this.deletePost.bind(this);
     this.createPost = this.createPost.bind(this);
+    this.searchPosts = this.searchPosts.bind(this);
   }
 
   componentDidMount() {
@@ -31,28 +32,37 @@ class App extends Component {
   updatePost(postId, newText) {
     axios.put(`https://practiceapi.devmountain.com/api/posts?id=${postId}`, { newText })
       .then(response => {
-        this.setState({ posts: response.data }).catch(error => console.log(error));
+        this.setState({ posts: response.data })
       })
   }
 
-  deletePost() {
-
+  deletePost(postId) {
+    axios.delete(`https://practiceapi.devmountain.com/api/posts?id=${postId}`).then(response => {
+      this.setState({ posts: response.data })
+    })
   }
 
-  createPost() {
+  createPost(text) {
+    axios.post(`https://practiceapi.devmountain.com/api/posts`, { text }).then(response => {
+      this.setState({ posts: response.data })
+    })
+  }
 
+  searchPosts(input) {
+    let uriInput = encodeURI(input);
+    axios.get(`https://practiceapi.devmountain.com/api/posts/filter?text=${uriInput}`).then(response => {
+      this.setState({ posts: response.data })
+    })
   }
 
   render() {
-    const { posts } = this.state;
-
     return (
       <div className="App__parent">
         <Header />
 
         <section className="App__content">
 
-          <Compose />
+          <Compose createPostFn={this.createPost} />
           {this.state.posts.map(e => {
 
             return <Post
@@ -60,7 +70,8 @@ class App extends Component {
               text={e.text}
               date={e.date}
               id={e.id}
-              updatePostFn={this.updatePost} />
+              updatePostFn={this.updatePost}
+              deletePostFn={this.deletePost} />
 
           })}
         </section>
